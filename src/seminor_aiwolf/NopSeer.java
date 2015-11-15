@@ -2,6 +2,7 @@ package seminor_aiwolf;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.aiwolf.client.base.player.AbstractSeer;
 import org.aiwolf.client.lib.TemplateTalkFactory;
@@ -14,15 +15,9 @@ import org.aiwolf.common.data.Talk;
 import org.aiwolf.common.net.GameInfo;
 
 public class NopSeer extends AbstractSeer {
-	static final int CO_DAY = 3; // 最低でもCOする日
-	boolean isComingOut = false; // カミングアウトをしたかどうか
-	boolean todayCOTimingJudged = false; // 今日その日にCOするかを判定したかどうか
-	int readTalkNum = 0;
-
-	//報告済みのJudgeを格納
-	List<Judge> myToldJudgeList = new ArrayList<Judge>();
-	//偽占いCOしているプレイヤーのリスト
-	List<Agent> fakeSeerCOAgent = new ArrayList<Agent>();
+	
+	private List<Agent> distrust_person = new ArrayList<Agent>();
+	//自分視点、偽の人
 
 	@Override
 	public Agent divine() {
@@ -36,71 +31,54 @@ public class NopSeer extends AbstractSeer {
 
 	}
 
-	public void update(GameInfo gameInfo) {
-		super.update(gameInfo);
-		// 今日のログを取得
-		List<Talk> talkList = gameInfo.getTalkList();
-
-		for (int i = readTalkNum; i < talkList.size(); i++) {
-			Talk talk = talkList.get(i);
-			// 発話をパース
-			Utterance utterance = new Utterance(talk.getContent());
-
-			// 発話のトピックごとに処理
-			switch (utterance.getTopic()) {
-			case COMINGOUT:
-				// カミングアウトの発話の処理
-				// 自分以外で占いCOしているプレイヤーの場合
-				if (utterance.getRole() == Role.SEER
-						&& !talk.getAgent().equals(getMe())) {
-					fakeSeerCOAgent.add(utterance.getTarget());
-				}
-				break;
-			case DIVINED:
-				// 占い結果の発話の処理
-				break;
-			default:
-				break;
-			}
-			readTalkNum++;
-		}
-	}
-
 	@Override
 	public String talk() {
-		if(isComingOut){
-			//占い結果順次報告
-			for(Judge judge: getMyJudgeList()){
-				if(!myToldJudgeList.contains(judge)){
-					String resultTalk = TemplateTalkFactory.divined(judge.getTarget(), judge.getResult());
-					myToldJudgeList.add(judge);
-					return resultTalk;
-				}
-			}
-		}else{
-			for(Judge judge: getMyJudgeList()){
-				if(judge.getResult() == Species.WEREWOLF){//黒発見したら
-					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
-					isComingOut = true;
-					return comingoutTalk;
-				}else if(!fakeSeerCOAgent.isEmpty()){//偽占いCOがあったら
-					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
-					isComingOut = true;
-					return comingoutTalk;
-				}else if(getLatestDayGameInfo().getDay() >= 3){//3日目になったら
-					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
-					isComingOut = true;
-					return comingoutTalk;
-				}
-			}
-		}
-		return Talk.OVER;
+		// TODO 自動生成されたメソッド・スタブ
+		return null;
+	}
+	
+	/**
+	 * 引数のAgentのリストからランダムにAgentを選択します
+	 * @param agentList
+	 * @return
+	 */
+	private Agent randomSelect(List<Agent> agentList) {
+		int num = new Random().nextInt(agentList.size());
+		return agentList.get(num);
 	}
 
 	@Override
 	public Agent vote() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
+		List<Agent> whiteAgent = new ArrayList<Agent>(),
+				blackAgent = new ArrayList<Agent>();
+		
+		for(Judge judge: getMyJudgeList()) {
+			if (getLatestDayGameInfo().getAliveAgentList().contains(judge.getTarget()))  {
+				switch (judge.getResult()) {
+				case HUMAN:
+					whiteAgent.add(judge.getTarget());
+					break;
+				case WEREWOLF:
+					blackAgent.add(judge.getTarget());
+					break;
+				}
+				
+			}
+		}
+		
+		//占いの投票の順番
+		// 自分の● → 自分視点偽の人 → 自分の○以外の人
+		if (blackAgent.size() > 0) {
+			return randomSelect(blackAgent);
+		} else if (distrust_person.size() > 0) {
+			return randomSelect(distrust_person);
+		} else {
+			List<Agent> voteCandidates = new ArrayList<Agent>();
+			voteCandidates.addAll(getLatestDayGameInfo().getAliveAgentList());
+			voteCandidates.remove(getMe());
+			voteCandidates.removeAll(whiteAgent);
+			return randomSelect(voteCandidates);
+		}
 	}
 
 }
