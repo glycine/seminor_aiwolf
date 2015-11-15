@@ -66,18 +66,19 @@ public class NopSeer extends AbstractSeer {
 	public String talk() {
 		if(isComingOut){
 			//占い結果報告
-			isComingOut = true;
 		}else{
 			for(Judge judge: getMyJudgeList()){
-				if(judge.getResult() == Species.WEREWOLF){
+				if(judge.getResult() == Species.WEREWOLF){//黒発見したら
 					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+					isComingOut = true;
 					return comingoutTalk;
-				}else if(false){
-
+				}else if(!fakeSeerCOAgent.isEmpty()){//偽占いCOがあったら
 					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+					isComingOut = true;
 					return comingoutTalk;
-				}else if(getLatestDayGameInfo().getDay() >= 3){
+				}else if(getLatestDayGameInfo().getDay() >= 3){//3日目になったら
 					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+					isComingOut = true;
 					return comingoutTalk;
 				}
 			}
