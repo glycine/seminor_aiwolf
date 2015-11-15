@@ -18,6 +18,8 @@ public class NopSeer extends AbstractSeer {
 	boolean isComingOut = false;	//カミングアウトをしたかどうか
 	int readTalkNum = 0;
 
+	//報告済みのJudgeを格納
+	List<Judge> myToldJudgeList = new ArrayList<Judge>();
 	//偽占いCOしているプレイヤーのリスト
 	List<Agent> fakeSeerCOAgent = new ArrayList<Agent>();
 
@@ -65,7 +67,14 @@ public class NopSeer extends AbstractSeer {
 	@Override
 	public String talk() {
 		if(isComingOut){
-			//占い結果報告
+			//占い結果順次報告
+			for(Judge judge: getMyJudgeList()){
+				if(!myToldJudgeList.contains(judge)){
+					String resultTalk = TemplateTalkFactory.divined(judge.getTarget(), judge.getResult());
+					myToldJudgeList.add(judge);
+					return resultTalk;
+				}
+			}
 		}else{
 			for(Judge judge: getMyJudgeList()){
 				if(judge.getResult() == Species.WEREWOLF){//黒発見したら
