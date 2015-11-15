@@ -19,7 +19,9 @@ public class NopSeer extends AbstractSeer {
 	boolean todayCOTimingJudged = false; // 今日その日にCOするかを判定したかどうか
 	int readTalkNum = 0;
 
-	// 偽占いCOしているプレイヤーのリスト
+	//報告済みのJudgeを格納
+	List<Judge> myToldJudgeList = new ArrayList<Judge>();
+	//偽占いCOしているプレイヤーのリスト
 	List<Agent> fakeSeerCOAgent = new ArrayList<Agent>();
 
 	@Override
@@ -66,22 +68,28 @@ public class NopSeer extends AbstractSeer {
 
 	@Override
 	public String talk() {
-		GameInfo gameInfo = this.getLatestDayGameInfo();
-		if (isComingOut) {
-			isComingOut = true;
-		} else {
-			for (Judge judge : getMyJudgeList()) {
-				if (judge.getResult() == Species.WEREWOLF) {
-					String comingoutTalk = TemplateTalkFactory.comingout(
-							getMe(), getMyRole());
+		if(isComingOut){
+			//占い結果順次報告
+			for(Judge judge: getMyJudgeList()){
+				if(!myToldJudgeList.contains(judge)){
+					String resultTalk = TemplateTalkFactory.divined(judge.getTarget(), judge.getResult());
+					myToldJudgeList.add(judge);
+					return resultTalk;
+				}
+			}
+		}else{
+			for(Judge judge: getMyJudgeList()){
+				if(judge.getResult() == Species.WEREWOLF){//黒発見したら
+					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+					isComingOut = true;
 					return comingoutTalk;
-				} else if (false) {
-					String comingoutTalk = TemplateTalkFactory.comingout(
-							getMe(), getMyRole());
+				}else if(!fakeSeerCOAgent.isEmpty()){//偽占いCOがあったら
+					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+					isComingOut = true;
 					return comingoutTalk;
-				} else if (getLatestDayGameInfo().getDay() >= 3) {
-					String comingoutTalk = TemplateTalkFactory.comingout(
-							getMe(), getMyRole());
+				}else if(getLatestDayGameInfo().getDay() >= 3){//3日目になったら
+					String comingoutTalk = TemplateTalkFactory.comingout(getMe(), getMyRole());
+					isComingOut = true;
 					return comingoutTalk;
 				}
 			}
