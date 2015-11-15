@@ -6,8 +6,6 @@ public class NopRoleAssignPlayer extends AbstractRoleAssignPlayer {
 
 	@Override
 	public String getName() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
+		return "seminor_aiwolf";
 	}
-
 }
