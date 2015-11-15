@@ -1,0 +1,21 @@
+public Agent divine() {
+		//占い対象の候補者リスト
+		List<Agent> divineCandidates = new ArrayList<Agent>();
+
+		//生きているプレイヤーを候補者リストに加える
+		divineCandidates.addAll(getLatestDayGameInfo().getAliveAgentList());
+		//自分自身と既に占ったことのあるプレイヤーは候補から外す
+		divineCandidates.remove(getMe());
+		for(Judge judge: getMyJudgeList()){
+			if(divineCandidates.contains(judge.getTarget())){
+				divineCandidates.remove(judge.getTarget());
+			}
+		}
+		if(divineCandidates.size() > 0){
+			//候補者リストからランダムに選択
+			return randomSelect(divineCandidates);
+		}else{
+			//候補者がいない場合は自分を占う
+			return getMe();
+		}
+	}

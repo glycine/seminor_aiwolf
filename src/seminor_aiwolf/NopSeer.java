@@ -23,6 +23,13 @@ public class NopSeer extends AbstractSeer {
 	//偽占いCOしているプレイヤーのリスト
 	List<Agent> fakeSeerCOAgent = new ArrayList<Agent>();
 
+
+	@Override
+	public void dayStart(){
+		super.dayStart();
+		readTalkNum = 0;
+	}
+
 	@Override
 	public Agent divine() {
 		// TODO 自動生成されたメソッド・スタブ
