@@ -2,6 +2,7 @@ package seminor_aiwolf;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.aiwolf.client.base.player.AbstractSeer;
 import org.aiwolf.client.lib.TemplateTalkFactory;
@@ -26,8 +27,30 @@ public class NopSeer extends AbstractSeer {
 
 	@Override
 	public Agent divine() {
-		// TODO 自動生成されたメソッド・スタブ
-		return null;
+		//占い対象の候補者リスト
+		List<Agent> divineCandidates = new ArrayList<Agent>();
+
+		//生きているプレイヤーを候補者リストに加える
+		divineCandidates.addAll(getLatestDayGameInfo().getAliveAgentList());
+		//自分自身と既に占ったことのあるプレイヤーは候補から外す
+		divineCandidates.remove(getMe());
+		for(Judge judge: getMyJudgeList()){
+			if(divineCandidates.contains(judge.getTarget())){
+				divineCandidates.remove(judge.getTarget());
+			}
+		}
+		if(divineCandidates.size() > 0){
+			//候補者リストからランダムに選択
+			return randomSelect(divineCandidates);
+		}else{
+			//候補者がいない場合は自分を占う
+			return getMe();
+		}
+	}
+	
+	public Agent randomSelect(List<Agent> agentList){
+		int num = new Random().nextInt(agentList.size());
+		return agentList.get(num);
 	}
 
 	@Override
